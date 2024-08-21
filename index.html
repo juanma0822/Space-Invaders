@@ -11,19 +11,31 @@
             width: 960px;
             margin: 0 auto;
             text-align: center;
+            background-image: url('https://img.freepik.com/free-vector/pink-neon-background_53876-91656.jpg?size=626&ext=jpg&ga=GA1.1.2008272138.1723852800&semt=ais_hybrid');
+            background-size: cover; /* Ajusta la imagen para que cubra toda la pantalla */
+            background-position: center; /* Centra la imagen en la pantalla */
+            background-repeat: no-repeat; /* Evita que la imagen se repita */
+            background-attachment: fixed;
         }
 
         canvas {
             background: black;
-            border: solid yellow 3px;
+            border: solid rgb(13, 0, 255) 8px;
         }
 
         h1 {
             font-family: 'Press Start 2P', cursive;
             font-size: 36px;
-            color: rgb(0, 0, 0);
+            color: rgb(255, 255, 255);
             margin-bottom: 20px;
         }
+
+        footer p {
+        font-family: 'Press Start 2P', cursive; /* Cambia la fuente aquí */
+        font-size: 14px; /* Puedes ajustar el tamaño si lo deseas */
+        color: #ffffff; /* Cambia el color si lo deseas */
+        text-shadow: -3px -3px 3px rgba(0, 0, 0, 1);
+    }
     </style>
     <script>
 game = {
@@ -50,11 +62,18 @@ const BARRA = 32;
 
 /*------------------- OBJETOS ---------------*/
 
-function bala(x, y, w) {
+function Bala(x, y, w) {
     this.x= x;
     this.y= y;
     this.w = w;
-    this.dibujar = function () { };
+    this.dibujar = function () { 
+        //Dibujar la bala
+        game.ctx.save();
+        game.ctx.fillStyle = game.colorBala;
+        game.ctx.fillRect(this.x, this.y, this.w, this.w);
+        this.y= this.y -4;
+        game.ctx.restore();
+    };
 }
 
 function Jugador(x) {
@@ -76,7 +95,9 @@ function Enemigo(x, y) {
     this.num = 14;
     this.figura = true;
     this.vive= true;
-    this.dibujar= function(){ };
+    this.dibujar= function(){ 
+        game.ctx.drawImage(game.imagenEnemigo,0,0,40,30,this.x,this.y,35,30);
+    };
 
 }
 
@@ -121,12 +142,35 @@ const verificar = ()=>{
     if(game.tecla[KEY_RIGHT]) game.x+=10;
     if(game.tecla[KEY_LEFT]) game.x-=10;
 
+    //Verificar que no se salga del canvas
+    if(game.x> game.canvas.width -10) game.x = game.canvas.width - 10;
+    if(game.x< 0) game.x= 10;
+
+    //Disparo bala
+    if(game.tecla[BARRA]){
+        //El x de jugador, el y de jugador, y el ultimo parametro el ancho de la bala
+        game.balas_array.push(new Bala(game.Jugador.x + 12, game.Jugador.y - 3, 5));
+        game.tecla[BARRA] = false;
+    }
+
 }
 
 const pintar = ()=>{
     game.ctx.clearRect(0, 0, game.canvas.width, game.canvas.height);
     game.Jugador.dibujar(game.x);
 
+    /*---- MOVER LAS BALAS ----*/
+    for(var i=0; i<game.balas_array.length; i++) {
+        if (game.balas_array[i] != null) {
+            game.balas_array[i].dibujar();
+            if(game.balas_array[i].y<0) game.balas_array[i] = null;
+        }
+    }
+
+    //Enemigos
+    for(var i=0; i<game.enemigos_array.length; i++) {
+        game.enemigos_array[i].dibujar();
+    }
 
 }
 
@@ -135,6 +179,10 @@ const pintar = ()=>{
 document.addEventListener("keydown",function(e) {
     game.teclaPulsada= e.keyCode;
     game.tecla[e.keyCode] = true;
+
+    if (e.keyCode === BARRA) {
+        e.preventDefault();
+    }
 });
 
 document.addEventListener("keyup",function(e) {
@@ -160,6 +208,22 @@ window.onload=function(){
             game.imagen = new Image();
             game.imagen.src = "./imagenes/torre.fw.png";
 
+            //Crear enemigos
+            game.imagenEnemigo = new Image();
+            game.imagenEnemigo.src = "./imagenes/invader.fw.png";
+            game.imagenEnemigo.onload=function(){
+                for(var i=0;i<5; i++){
+                    for (var j= 0; j< 20; j++) {
+
+                        game.enemigos_array.push(new Enemigo(80+40*j, 30+45*i));
+                        
+                    }
+                }
+            }
+
+
+
+
             caratula();
             game.canvas.addEventListener("click",seleccionar,false);
             
@@ -178,6 +242,22 @@ window.onload=function(){
     <canvas id="canvas" width="960" height="500">
         Tu navegador no soporta el canvas de HTML5
     </canvas>
+
+    <img src="https://woozisworld.carrd.co/assets/images/gallery02/4d99587b.gif?v60849908202061" alt="Press Start" style="margin-top: 20px; width: 200px; margin-bottom: 100px;">
+
+    <footer style="margin-bottom: 10px;">
+        <p>Made by: Juan Manuel Valencia</p>
+        <a href="https://github.com/juanma0822" target="_blank">
+            <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" alt="GitHub" width="30" height="30">
+        </a>
+        <a href="https://www.linkedin.com/in/juan-manuel-valencia-249aa7250" target="_blank">
+            <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" width="30" height="30">
+        </a>
+        <a href="https://www.instagram.com/juanma0822" target="_blank">
+            <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram" width="30" height="30">
+        </a>
+    </footer>
+
 </body>
 
 </html>
