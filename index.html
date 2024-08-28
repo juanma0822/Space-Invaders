@@ -52,6 +52,12 @@ game = {
     balasEnemigas_array: new Array(),
     enemigos_array: new Array(),
     disparo: false,
+    puntos:0,
+    finJuego: false,
+    boing:null,
+    disparoJugador:null,
+    intro:null,
+    fin:null
 }
 
 /*------------------ CONSTANTES --------------*/
@@ -149,6 +155,7 @@ const caratula = () =>{
     imagen.src = "./imagenes/cara.webp";
     imagen.onload = () => {
         game.ctx.drawImage(imagen, 150, 0);
+        
     }
 }
 
@@ -164,17 +171,19 @@ const inicio = () => {
     game.Jugador= new Jugador(0);
     game.x = game.canvas.width/2;
     game.Jugador.dibujar(game.x);
+    game.intro.play();
     animar(); 
 }
 
 
 //var x=100 , y=100;
 const animar = () =>{
-
-    requestAnimationFrame(animar);
-    verificar();
-    pintar();
-    colisiones();
+    if(game.finJuego== false){
+        requestAnimationFrame(animar);
+        verificar();
+        pintar();
+        colisiones();
+    }
 
 }
 
@@ -193,6 +202,8 @@ const colisiones = () => {
                     game.enemigos_array[i] = null;
                     game.balas_array[j] = null;
                     game.disparo= false;
+                    game.puntos+=10;
+                    game.boing.play();
                 }
             }
         }
@@ -215,7 +226,34 @@ const colisiones = () => {
 }
 
 const gameOver = ()=>{
-    console.log("GAME OVER, You're a looser :()");
+    game.ctx.clearRect(0,0, game.canvas.width, game.canvas.height);
+    game.balas_array = [];
+    game.enemigos_array= [];
+    game.balasEnemigas_array= [];
+    game.finJuego=true;
+    game.fin.play();
+    mensaje("Game Over", 100,60);
+    mensaje("Lograste "+game.puntos+" puntos",220);
+
+    if(game.puntos>=100 && game.puntos<=200){
+        mensaje("Casi lo logras", 340);
+    }else if(game.puntos >200){
+        mensaje("¡Felicidades!",340);
+    }else{
+        mensaje("Vuelve a intentarlo",340);
+    }
+}
+
+const mensaje= (cadena,y,tamano=40)=>{
+    let medio = (game.canvas.width)/2;
+    game.ctx.save();
+    game.ctx.fillStyle = "White";
+    game.ctx.strokeStyle = "Blue";
+    game.ctx.textBaseline = "top";
+    game.ctx.font= "bold "+tamano+ "px Courier";
+    game.ctx.textAlign = "center";
+    game.ctx.fillText(cadena, medio, y);
+    game.ctx.restore();
 }
 
 const verificar = ()=>{
@@ -234,6 +272,7 @@ const verificar = ()=>{
             game.balas_array.push(new Bala(game.Jugador.x + 12, game.Jugador.y - 3, 5));
             game.tecla[BARRA] = false;
             game.disparo= true;
+            game.disparoJugador.play();
         }
         
     }
@@ -262,6 +301,7 @@ const dispararEnemigo=()=>{
 
 const pintar = ()=>{
     game.ctx.clearRect(0, 0, game.canvas.width, game.canvas.height);
+    score();
     game.Jugador.dibujar(game.x);
 
     /*---- MOVER LAS BALAS ----*/
@@ -292,6 +332,15 @@ const pintar = ()=>{
         }
         
     }
+
+}
+
+const score = () =>{
+    game.ctx.save();
+    game.ctx.fillStyle = "white";
+    game.ctx.font = "bold 20px Courier";
+    game.ctx.fillText("SCORE: " + game.puntos, 10, 20);
+    game.ctx.restore();
 
 }
 
@@ -326,10 +375,19 @@ window.onload=function(){
 	if(game.canvas && game.canvas.getContext){
 		game.ctx = canvas.getContext("2d");
 		if (game.ctx) {
+            //Sonidos
+            game.boing= document.getElementById("boing");
+            game.disparoJugador= document.getElementById("disparo");
+            game.intro= document.getElementById("intro");
+            game.fin= document.getElementById("fin");
+
+
+
+
             game.imagen = new Image();
             game.imagen.src = "./imagenes/torre.fw.png";
 
-            //Crear enemigos
+            //Crear enemigos -- Modificar en un futuro i y J
             game.imagenEnemigo = new Image();
             game.imagenEnemigo.src = "./imagenes/invader.fw.png";
             game.imagenEnemigo.onload=function(){
@@ -363,7 +421,22 @@ window.onload=function(){
     <canvas id="canvas" width="960" height="500">
         Tu navegador no soporta el canvas de HTML5
     </canvas>
-
+    <audio id="boing">
+        <source src="./sonidos/boing.mp3">
+        <source src="./sonidos/boing.ogg">
+    </audio>
+    <audio id="disparo">
+        <source src="./sonidos/disparo.mp3">
+        <source src="./sonidos/disparo.ogg">
+    </audio>
+    <audio id="intro">
+        <source src="./sonidos/intro.mp3">
+        <source src="./sonidos/intro.ogg">
+    </audio>
+    <audio id="fin">
+        <source src="./sonidos/gameOver.mp3">
+        <source src="./sonidos/gameOver.ogg">
+    </audio>
     <img src="https://woozisworld.carrd.co/assets/images/gallery02/4d99587b.gif?v60849908202061" alt="Press Start" style="margin-top: 20px; width: 200px; margin-bottom: 100px;">
 
     <footer style="margin-bottom: 10px;">
